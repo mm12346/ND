@@ -215,6 +215,14 @@
             font-weight: 600; /* font-semibold */
             color: #FBBF24; /* Yellow-400 for highlights */
         }
+
+        
+        .highlightgreen-value {
+            font-size: clamp(1rem, 4vw, 1.125rem); /* text-lg on small, text-lg on larger */
+            font-weight: 600; /* font-semibold */
+            color: #2cd416; /* Yellow-400 for highlights */
+        }
+
         .profit-value {
             color: #10B981; /* Green for profit */
         }
@@ -1576,8 +1584,8 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <h3 class="card-title">ยอดรวม (สำหรับแลกเปลี่ยน)</h3>
-                <p class="card-status">สถานะ: ปกติ</p>
+                <h3 class="card-title">ยอดรวมทุน</h3>
+                <p class="card-status">สถานะ: ทุน</p>
                 <div class="flex-grow"></div> <div class="summary-item">
                     <div class="summary-label">Total (฿)</div>
                     <div class="summary-value">${formatCurrency(summary.totalTHB, '฿')}</div>
@@ -1590,6 +1598,36 @@
             const totalCardToggle = document.getElementById('toggle-totalCard');
             if (totalCardToggle) totalCardToggle.addEventListener('change', () => toggleCardState(totalCardEl, totalCardToggle));
 
+
+            const customCardEl = document.getElementById('customCard');
+            customCardEl.innerHTML = `
+                <div class="card-header">
+                    <span class="card-icon">⭐</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-customCard">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <h3 class="card-title">ยอดรวม(ปัจจุบัน)</h3>
+                <p class="card-status">สถานะ: ปัจจุบัน</p>
+                <div class="flex-grow"></div><div class="summary-item">
+                    <div class="summary-label">รวม ฿</div>
+                    
+                    <div class="highlightgreen-value">${formatCurrency(summary.totalUSD * summary.currentRate, '฿')}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">รวม ($)</div>
+                <div class="highlightgreen-value">${formatCurrency(summary.totalUSD, '$')}</div>
+                </div>
+                 `;
+                // เพิ่ม toggle เหมือนการ์ดอื่น
+                const customCardToggle = document.getElementById('toggle-customCard');
+                if (customCardToggle) {
+                customCardToggle.checked = true; // ให้ toggle เปิดทุกครั้งที่รีโหลด
+                toggleCardState(customCardEl, customCardToggle);
+             customCardToggle.addEventListener('change', () => toggleCardState(customCardEl, customCardToggle));
+            }   
+            
             // Populate Rates Card
             ratesCardEl.innerHTML = `
                 <div class="card-header">
@@ -1599,8 +1637,8 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <h3 class="card-title">อัตราแลกเปลี่ยน (สกุลเงิน)</h3>
-                <p class="card-status">สถานะ: ปกติ</p>
+                <h3 class="card-title">อัตราแลกเปลี่ยน</h3>
+                <p class="card-status">สถานะ: บาทเป็นดอลล่า</p>
                 <div class="flex-grow"></div> <div class="summary-item">
                     <div class="summary-label">AvgRate ซื้อ ($)</div>
                     <div class="summary-value" id="display-avgRate">${formatRate(summary.avgRate)}</div>
@@ -1648,7 +1686,7 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <h3 class="card-title">ซื้อเพิ่ม (สกุลเงิน)</h3>
+                <h3 class="card-title">ซื้อเพิ่ม</h3>
                 <p class="card-status">สถานะ: ปกติ</p>
                 <div class="flex-grow"></div> <div class="summary-item">
                     <div class="summary-label">ซื้อเพิ่ม (฿)</div>
@@ -1661,6 +1699,8 @@
             `;
             const buyCardToggle = document.getElementById('toggle-buyCard');
             if (buyCardToggle) buyCardToggle.addEventListener('change', () => toggleCardState(buyCardEl, buyCardToggle));
+
+            
 
             // Populate Profit/Loss Card (for currency)
             const realizedProfitLoss = parseFloat(summary.realizedProfitLoss) || 0;
@@ -1689,10 +1729,6 @@
                 <div class="summary-item">
                     <div class="summary-label">กำไร/ขาดทุนที่ยังไม่รับรู้ (฿)</div>
                     <div id="display-unrealizedProfitLossTHB" class="${unrealizedProfitLossClassTHB}">${formatCurrency(unrealizedProfitLossTHB, '฿')}</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">กำไร/ขาดทุนที่ยังไม่รับรู้ ($)</div>
-                    <div id="display-unrealizedProfitLossUSD" class="${unrealizedProfitLossClassUSD}">${formatCurrency(unrealizedProfitLossUSD, '$')}</div>
                 </div>
             `;
             const profitLossCardToggle = document.getElementById('toggle-profitLossCard');
@@ -1753,6 +1789,7 @@
                         editButton.classList.remove('hidden');
                         formElement.classList.add('hidden');
                         calculateAdditionalBuy();
+                        fetchSummary();
                     })
                     .catch(error => {
                         console.error('Error saving field:', error);
@@ -2047,9 +2084,12 @@
         function fetchSummary() {
             const loaderHTML = `<div class="flex justify-center py-8"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10"></div></div>`;
             totalCardEl.innerHTML = loaderHTML;
+            const customCardEl = document.getElementById('customCard');
+            if (customCardEl) customCardEl.innerHTML = loaderHTML;
             ratesCardEl.innerHTML = loaderHTML;
             buyCardEl.innerHTML = loaderHTML;
             profitLossCardEl.innerHTML = loaderHTML;
+            
 
             if (!window.userSheetId) {
                 const noSheetIdMessage = '<p class="text-red-500 text-center py-4">กรุณาเข้าสู่ระบบและตั้งค่า Google Sheet ID ในหน้าตั้งค่า</p>';
@@ -2079,11 +2119,13 @@
                         displaySummary(data.summary); 
                         
                         const totalCardToggle = document.getElementById('toggle-totalCard');
+                        const customCardToggle = document.getElementById('toggle-customCard'); // เพิ่มบรรทัดนี้
                         const ratesCardToggle = document.getElementById('toggle-ratesCard');
                         const buyCardToggle = document.getElementById('toggle-buyCard');
                         const profitLossCardToggle = document.getElementById('toggle-profitLossCard');
 
                         if (totalCardToggle) { totalCardToggle.checked = true; toggleCardState(totalCardEl, totalCardToggle); }
+                        if (customCardToggle) { customCardToggle.checked = true;    toggleCardState(customCardEl, customCardToggle); } // เพิ่มบรรทัดนี้     
                         if (ratesCardToggle) { ratesCardToggle.checked = true; toggleCardState(ratesCardEl, ratesCardToggle); }
                         if (buyCardToggle) { buyCardToggle.checked = true; toggleCardState(buyCardEl, buyCardToggle); }
                         if (profitLossCardToggle) { profitLossCardToggle.checked = true; toggleCardState(profitLossCardEl, profitLossCardToggle); }
@@ -2092,12 +2134,14 @@
                         const invalidDataMessage = '<p class="text-red-500 text-center py-4">ข้อมูลสรุปไม่ถูกต้องหรือไม่สมบูรณ์</p>';
                         totalCardEl.innerHTML = invalidDataMessage; ratesCardEl.innerHTML = invalidDataMessage;
                         buyCardEl.innerHTML = invalidDataMessage; profitLossCardEl.innerHTML = invalidDataMessage;
+                        currentRateCardEl.innerHTML = invalidDataMessage; // เพิ่มบรรทัดนี้เพื่อจัดการกับ customCardEl
                         showNotification(errorNotification, 'ข้อมูลสรุปไม่ถูกต้องหรือไม่สมบูรณ์');
                     }
                 } else {
                     const noDataMessage = '<p class="text-gray-500 text-center py-4">ไม่พบข้อมูลสรุป</p>';
                     totalCardEl.innerHTML = noDataMessage; ratesCardEl.innerHTML = noDataMessage;
                     buyCardEl.innerHTML = noDataMessage; profitLossCardEl.innerHTML = noDataMessage;
+                    customCardEl.innerHTML = noDataMessage; // เพิ่มบรรทัดนี้เพื่อจัดการกับ customCardEl
                 }
             })
             .catch(error => {
@@ -2105,6 +2149,7 @@
                 const errorMessage = `<p class="text-red-500 text-center py-4">ไม่สามารถโหลดข้อมูลสรุปได้: โปรดตรวจสอบ URL ของ Google Apps Script และการตั้งค่าการเข้าถึง</p>`;
                 totalCardEl.innerHTML = errorMessage; ratesCardEl.innerHTML = errorMessage;
                 buyCardEl.innerHTML = errorMessage; profitLossCardEl.innerHTML = errorMessage;
+                customCardEl.innerHTML = errorMessage; // เพิ่มบรรทัดนี้เพื่อจัดการกับ customCardEl
             });
         }
 
@@ -3117,17 +3162,19 @@
                 overallAvgStockExchangeRate = totalWeightedExchangeRateAllStocks / totalSharesHeld;
             }
 
-            const totalPortfolioValueUSD = totalStockMarketValueUSD + (parseFloat(summaryData ? summaryData.totalUSD : 0) || 0); // Stock market value + cash USD
+            const totalPortfolioValueUSD = totalStockMarketValueUSD; // เฉพาะหุ้น
             const totalPortfolioCostTHB = totalStockCostTHB + (parseFloat(summaryData ? summaryData.totalTHB : 0) || 0); // Stock cost basis THB + cash THB cost
-            const currentOverallRate = (parseFloat(summaryData ? summaryData.currentRate : 0) || 0); // Current USD/THB rate
+            const currentOverallRate = (parseFloat(summaryData ? summaryData.currentRate : 0) || 0);
             const overallAvgRate = (totalPortfolioValueUSD > 0) ? totalPortfolioCostTHB / totalPortfolioValueUSD : 0; // Overall average rate of entire portfolio
 
             // Render Summary Dashboard
             stockSummaryDashboard.innerHTML = `
                 <div class="stock-summary-card bg-teal-400 col-span-1">
-                    <p class="stock-summary-card-title">มูลค่ารวมหุ้น</p>
-                    <p class="stock-summary-card-value">${totalStockMarketValueUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
-                    <p class="stock-summary-card-rate">AvgRate : ${overallAvgStockExchangeRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="stock-summary-card-rate-baht">(${ (totalStockMarketValueUSD * overallAvgStockExchangeRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
+                    <p class="stock-summary-card-title">มูลค่ารวมหุ้น(ทุน)</p>
+                    <p class="stock-summary-card-value">${totalStockCostUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
+                    <p class="stock-summary-card-rate">AvgRate : ${(summaryData && summaryData.avgRate ? summaryData.avgRate : 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    <span class="stock-summary-card-rate-baht">(${(totalStockMarketValueUSD * (summaryData && summaryData.avgRate ? summaryData.avgRate : 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span>
+                </p>
                 </div>
                 <div class="stock-summary-card bg-lime-400 col-span-1">
                     <p class="stock-summary-card-title">ปัจจุบัน</p>
@@ -3137,12 +3184,13 @@
                 <div class="stock-summary-card bg-orange-400 col-span-1">
                     <p class="stock-summary-card-title">กำไร/ขาดทุน</p>
                     <p class="stock-summary-card-value">${totalUnrealizedProfitLossUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
-                    <p class="stock-summary-card-rate">AvgRate : ${overallAvgStockExchangeRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="stock-summary-card-rate-baht">(${totalUnrealizedProfitLossTHB.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
+                    <p class="stock-summary-card-rate">ขาดทุนกำไรบาท (${((totalStockMarketValueUSD * currentOverallRate) - totalStockCostTHB).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
                 </div>
                 <div class="stock-summary-card bg-red-500 col-span-1">
                     <p class="stock-summary-card-title">รวมพอร์ต(ทุน)+เงินสด(ทุน)</p>
                     <p class="stock-summary-card-value">${(totalStockCostUSD + (parseFloat(summaryData ? summaryData.totalUSD : 0) || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
-                    <p class="stock-summary-card-rate">AvgRate : ${overallAvgRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="stock-summary-card-rate-baht">(${totalPortfolioCostTHB.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
+                    <p class="stock-summary-card-rate">AvgRate : ${(summaryData && summaryData.avgRate ? summaryData.avgRate : 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}<span class="stock-summary-card-rate-baht">(${totalPortfolioCostTHB.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span>
+        </p>
                 </div>
                 <div class="stock-summary-card bg-blue-400 md:col-span-2">
                     <p class="stock-summary-card-title">กำไรจากการขายสะสม</p>
@@ -3972,6 +4020,7 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                                 <div id="totalCard" class="summary-card fade-in"></div>
+                                <div id="customCard" class="summary-card fade-in"></div> <!-- เพิ่มการ์ดใหม่ตรงนี้ -->
                                 <div id="ratesCard" class="summary-card fade-in"></div>
                                 <div id="buyCard" class="summary-card fade-in"></div>
                                 <div id="profitLossCard" class="summary-card fade-in"></div>
@@ -4071,7 +4120,7 @@
                                     <div><label for="stockRecordStockSymbol" class="block text-sm font-medium text-gray-300 mb-1">ชื่อหุ้น (Symbol):</label><input type="text" id="stockRecordStockSymbol" placeholder="เช่น AAPL" class="stock-form-input w-full p-3" required></div>
                                     <div><label for="stockRecordUsdAmountPerShare" class="block text-sm font-medium text-gray-300 mb-1">ราคาซื้อ (USD/หุ้น):</label><input type="number" id="stockRecordUsdAmountPerShare" step="0.0001" min="0.0001" placeholder="ราคาซื้อต่อหุ้นเป็น USD" class="stock-form-input w-full p-3" required></div>
                                     <div><label for="stockRecordQuantity" class="block text-sm font-medium text-gray-300 mb-1">จำนวนหุ้น:</label><input type="number" id="stockRecordQuantity" step="0.0000001" min="0.0000001" placeholder="จำนวนหุ้นที่ซื้อ" class="stock-form-input w-full p-3" required></div>
-                                    <div><label for="stockRecordUsdRate" class="block text-sm font-medium text-gray-300 mb-1">อัตราแลกเปลี่ยน (THB/USD):</label><input type="number" id="stockRecordUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ซื้อ" class="stock-form-input w-full p-3" required></div>
+                                    <div><label for="stockRecordUsdRate" class="block text-sm font-medium text-gray-300 mb-1">อัตราแลกเปลี่ยน (THB/USD):</label><input type="number" id="stockRecordUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ซื้อ" class="stock-form-input w-full p-3" required readonly></div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div><label for="stockRecordTotalTHB" class="block text-sm font-medium text-gray-300 mb-1">รวมเงิน (THB):</label><input type="number" id="stockRecordTotalTHB" step="0.01" min="0" class="stock-form-input w-full p-3" readonly></div>
                                         <div><label for="stockRecordPricePerShare" class="block text-sm font-medium text-gray-300 mb-1">ราคา (THB/หุ้น):</label><input type="number" id="stockRecordPricePerShare" step="0.0001" min="0" class="stock-form-input w-full p-3" readonly></div>
@@ -4089,7 +4138,7 @@
                                     </div>
                                     <div><label for="stockSellUsdPricePerShare" class="block text-sm font-medium text-gray-300 mb-1">ราคาขาย (USD/หุ้น):</label><input type="number" id="stockSellUsdPricePerShare" step="0.0001" min="0.0001" placeholder="ราคาขายต่อหุ้นเป็น USD" class="stock-form-input w-full p-3" required></div>
                                     <div><label for="stockSellQuantity" class="block text-sm font-medium text-gray-300 mb-1">จำนวนหุ้น:</label><input type="number" id="stockSellQuantity" step="0.0000001" min="0.0000001" placeholder="จำนวนหุ้นที่ขาย" class="stock-form-input w-full p-3" required></div>
-                                    <div><label for="stockSellUsdRate" class="block text-sm font-medium text-gray-300 mb-1">อัตราแลกเปลี่ยน (THB/USD):</label><input type="number" id="stockSellUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ขาย" class="stock-form-input w-full p-3" required></div>
+                                    <div><label for="stockSellUsdRate" class="block text-sm font-medium text-gray-300 mb-1">อัตราแลกเปลี่ยน (THB/USD):</label><input type="number" id="stockSellUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ขาย" class="stock-form-input w-full p-3" required readonly></div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div><label for="stockSellTotalTHBReceived" class="block text-sm font-medium text-gray-300 mb-1">รวมเงินที่ได้รับ (THB):</label><input type="number" id="stockSellTotalTHBReceived" step="0.01" min="0" class="stock-form-input w-full p-3" readonly></div>
                                         <div><label for="stockSellPricePerShare" class="block text-sm font-medium text-gray-300 mb-1">ราคาขาย (THB/หุ้น):</label><input type="number" id="stockSellPricePerShare" step="0.0001" min="0" class="stock-form-input w-full p-3" readonly></div>
@@ -4257,7 +4306,7 @@
                 </div>
                 <div>
                     <label for="stockSellModalUsdRate" class="block text-sm font-medium text-gray-300 mb-1">อัตราแลกเปลี่ยน (THB/USD):</label>
-                    <input type="number" id="stockSellModalUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ขาย" class="stock-form-input w-full p-3" required>
+                    <input type="number" id="stockSellModalUsdRate" step="0.01" min="0.01" placeholder="Rate THB/USD ณ วันที่ขาย" class="stock-form-input w-full p-3" required readonly>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>

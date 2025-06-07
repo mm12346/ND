@@ -3118,9 +3118,9 @@
                     stocksData[stockSymbol].totalShares -= quantity;
                     
                     if (stocksData[stockSymbol].totalQuantityForExchangeRate > 0) {
-                        const currentAvgExchangeRate = stocksData[stockSymbol].totalWeightedExchangeRate / stocksData[stockSymbol].totalQuantityForExchangeRate;
-                        stocksData[stockSymbol].totalWeightedExchangeRate -= (currentAvgExchangeRate * quantity);
-                        stocksData[symbol].totalQuantityForExchangeRate -= quantity;
+                    const currentAvgExchangeRate = stocksData[stockSymbol].totalWeightedExchangeRate / stocksData[stockSymbol].totalQuantityForExchangeRate;
+                    stocksData[stockSymbol].totalWeightedExchangeRate -= (currentAvgExchangeRate * quantity);
+                    stocksData[stockSymbol].totalQuantityForExchangeRate -= quantity; // <-- แก้ตรงนี้!
                     }
                 }
             });

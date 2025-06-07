@@ -1519,27 +1519,21 @@
             // The avgRate here is the average cost of the *currently available USD for exchange*.
             // If the goal is to reach targetRate for the *currently available USD*,
             // and totalTHB = totalUSD * avgRate (which it should if avgRate is correctly representing the cost of totalUSD)
-            if (avgRate <= targetRate && totalUSD > 0) { // Only calculate if we want to lower the avgRate and have USD
-                 additionalTHB = 0;
-                 additionalUSD = 0;
-            } else if (totalUSD <=0 && targetRate > 0 && currentRate > 0) { // If no USD, and want to buy to target
-                // This case might need a different interpretation or a fixed amount to buy.
-                // For now, if totalUSD is zero or negative, additional buy is zero by the formula if avgRate is not well-defined.
-                additionalTHB = 0;
-                additionalUSD = 0;
-            }
-            else {
-                const numerator = (targetRate * totalUSD) - totalTHB; // Should be totalUSD * (targetRate - avgRate)
-                const denominator = (1 - (targetRate / currentRate));
-
-                if (currentRate === 0 || denominator === 0) {
-                    additionalTHB = 0; 
-                    additionalUSD = 0;
-                } else {
-                    additionalTHB = numerator / denominator;
-                    if (additionalTHB < 0) additionalTHB = 0; // Don't suggest selling with this formula
-                    additionalUSD = additionalTHB / currentRate;
-                }
+            if (
+            targetRate > 0 &&
+            currentRate > 0 &&
+            avgRate > 0 &&
+            totalUSD > 0 &&
+            currentRate !== targetRate
+            ) {
+            const numerator = (targetRate * totalUSD) - (totalUSD * avgRate);
+            const denominator = currentRate - targetRate;
+            additionalTHB = (numerator * currentRate) / denominator;
+            if (additionalTHB < 0) additionalTHB = 0;
+            additionalUSD = additionalTHB / currentRate;
+            } else {
+            additionalTHB = 0;
+            additionalUSD = 0;
             }
             
             const additionalBuyTHBDisplay = document.getElementById('display-additionalBuyTHB');
@@ -2639,7 +2633,7 @@
                 let secondaryDetails = `
                     <span>${quantity.toLocaleString()} หุ้น</span>
                     <span>Rate: ${exchangeRate.toFixed(2)} THB/USD</span>
-                `;
+            `;
                 let totalAmountDisplay = `รวมเงิน: ${totalAmountTHB.toLocaleString(undefined, {minimumFractionDigits: 2})} ฿`;
                 let pricePerShareDisplay = `ราคา/หุ้น: ${pricePerShareTHB.toLocaleString(undefined, {minimumFractionDigits: 2})} ฿`;
                 let actionButtonHTML = '';
@@ -3122,7 +3116,7 @@
                     stocksData[stockSymbol].totalWeightedExchangeRate -= (currentAvgExchangeRate * quantity);
                     stocksData[stockSymbol].totalQuantityForExchangeRate -= quantity; // <-- แก้ตรงนี้!
                     }
-                }
+             }
             });
 
             // Finalize stocksData and calculate overall summaries
@@ -3174,7 +3168,7 @@
                     <p class="stock-summary-card-title">มูลค่ารวมหุ้น(ทุน)</p>
                     <p class="stock-summary-card-value">${totalStockCostUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
                     <p class="stock-summary-card-rate">AvgRate : ${(summaryData && summaryData.avgRate ? summaryData.avgRate : 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                    <span class="stock-summary-card-rate-baht">(${(totalStockMarketValueUSD * (summaryData && summaryData.avgRate ? summaryData.avgRate : 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span>
+                    <span class="stock-summary-card-rate-baht">(${(totalStockCostUSD* (summaryData && summaryData.avgRate ? summaryData.avgRate : 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span>
                 </p>
                 </div>
                 <div class="stock-summary-card bg-lime-400 col-span-1">
@@ -3185,7 +3179,7 @@
                 <div class="stock-summary-card bg-orange-400 col-span-1">
                     <p class="stock-summary-card-title">กำไร/ขาดทุน</p>
                     <p class="stock-summary-card-value">${totalUnrealizedProfitLossUSD.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} $</p>
-                    <p class="stock-summary-card-rate">ขาดทุนกำไรบาท (${((totalStockMarketValueUSD * currentOverallRate) - totalStockCostTHB).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
+                    <p class="stock-summary-card-rate">กำไร/ขาดทุน(บาท) (${((totalStockMarketValueUSD * currentOverallRate) - totalStockCostTHB).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿)</span></p>
                 </div>
                 <div class="stock-summary-card bg-red-500 col-span-1">
                     <p class="stock-summary-card-title">รวมพอร์ต(ทุน)+เงินสด(ทุน)</p>
@@ -4241,7 +4235,7 @@
                     <button id="signUpModalSubmitButton" class="login-button">ลงทะเบียน</button>
                 </div>
             </div>
-            <p class="text-center login-version">เวอร์ชัน 1.0.1</p>
+            <p class="text-center login-version">เวอร์ชัน 1.0</p>
         </div>
     </div>
 

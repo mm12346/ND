@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบลงคะแนนเลือกตั้ง</title>
+    <title>ระบบลงคะแนนเลือกตั้ง (สำเนา)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js for graphs -->
@@ -37,7 +37,7 @@
         <!-- ===== Voter View ===== -->
         <div id="voter-view">
             <header class="text-center mb-8">
-                <h1 class="text-3xl sm:text-4xl font-bold text-blue-600">ลงคะแนนเลือกตั้ง สวัสดิการ</h1>
+                <h1 class="text-3xl sm:text-4xl font-bold text-blue-600">ลงคะแนนเลือกตั้ง (สำเนา)</h1>
                 <p class="text-lg mt-2 text-gray-600">โปรดเลือกผู้สมัครที่คุณต้องการ</p>
                 <div id="total-votes-display" class="mt-4 text-xl font-semibold bg-white p-3 rounded-lg shadow-md inline-block">
                     กำลังโหลดจำนวนผู้ลงคะแนน...
@@ -150,10 +150,11 @@
         // !!!  สำคัญ: กรุณานำ URL ของเว็บแอปที่คุณได้จากการ Deploy              !!!
         // !!!  ใน Google Apps Script มาวางแทนที่ข้อความข้างล่างนี้             !!!
         // !!! ================================================================= !!!
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznGGo4rfKQBu3HKoKoDhhJ5_LHqxkHwZeXYme9w87IECvTc8Lv6kfp6hQeT9p7-20G/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVLafzVkpuLwiLJ8K0Vv2DOrJbgH2jGKuQ4sx5gOfPdh0s-Se-89Xr5S_6Gz3SWqIz/exec';
         const ADMIN_PASSWORD = '5867050201';
         const ADMIN_REFRESH_INTERVAL = 60000; // 1 minute for admin refresh
         const VOTER_REFRESH_INTERVAL = 60000; // 1 minute for voter refresh
+        const VOTE_STORAGE_KEY = 'hasVoted_copy_v1'; // Unique key for this version
 
         // --- STATE ---
         let resultsChart = null;
@@ -222,7 +223,7 @@
          * Renders the candidate cards on the voter page
          */
         async function renderCandidates() {
-            const hasVoted = localStorage.getItem('hasVoted') === 'true';
+            const hasVoted = localStorage.getItem(VOTE_STORAGE_KEY) === 'true';
             const data = await fetchData('getcandidates');
             
             candidatesGrid.innerHTML = ''; // Clear loading skeleton
@@ -387,7 +388,7 @@
                     body: JSON.stringify({ candidateId: candidateId })
                 });
                 
-                localStorage.setItem('hasVoted', 'true');
+                localStorage.setItem(VOTE_STORAGE_KEY, 'true');
                 votedMessage.classList.remove('hidden');
 
                 document.querySelectorAll('.vote-btn').forEach(button => {
